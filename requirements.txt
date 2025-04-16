@@ -1,0 +1,8 @@
+pynput
+PyQt5
+qasync
+websockets
+aiortc
+mss
+pyaudio
+pycryptodome
