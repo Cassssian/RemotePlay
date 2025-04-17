@@ -3,10 +3,15 @@
 
 import asyncio, json, websockets, os
 
-PORT = 10000
+PORT = 8765
 clients = set()
 
 async def handler(websocket, path):
+    # Vérifier que la méthode HTTP est GET
+    if websocket.request_headers.get("Upgrade", "").lower() != "websocket":
+        print('lakaka')
+        return
+
     clients.add(websocket)
     try:
         async for msg in websocket:
