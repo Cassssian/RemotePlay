@@ -3,7 +3,7 @@
 
 import asyncio, json, websockets
 
-PORT = 8765
+PORT = 10000
 clients = {}
 
 async def handler(websocket):
