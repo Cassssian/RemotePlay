@@ -21,3 +21,15 @@ def generate_access_code(info: dict) -> str:
     ct, tag = cipher.encrypt_and_digest(data)
     payload = cipher.nonce + tag + ct + key
     return base64.urlsafe_b64encode(payload).decode()
+
+
+def generate_color_scheme():
+    """Génère un schéma de couleurs harmonieux."""
+    base_color = random.randint(0, 255)
+    complementary_color = (base_color + 128) % 256  # Couleur complémentaire
+    return {
+        "background": f"rgb({24}, {12}, {36})",
+        "primary": f"rgb({complementary_color}, {complementary_color}, 255)",
+        "secondary": f"rgb(255, {complementary_color}, {complementary_color})",
+        "text": "white" if base_color < 128 else "black"
+    }

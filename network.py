@@ -36,18 +36,23 @@ class HostPeer(BasePeer):
         code = generate_access_code({'username': self.username})
         await self.ws.send(json.dumps({'action': 'register', 'code': code, 'username': self.username}))
         self.window.show_code(code)
-        self.window.show_status("En attente d'une connexion...")
 
-        try:
-            msg = await asyncio.wait_for(self.ws.recv(), timeout=150)  # Augmentez le délai d'attente
-        except asyncio.TimeoutError:
-            self.window.show_status("Timeout : aucun client")
-            return
+        timeout = 150  # Temps total en secondes
+        for remaining in range(timeout, 0, -1):
+            self.window.show_status(f"En attente d'une connexion... ({remaining}s restantes)")
+            try:
+                msg = await asyncio.wait_for(self.ws.recv(), timeout=1)  # Attente par incréments de 1 seconde
+                data = json.loads(msg)
+                if data.get('action') == 'remote_found':
+                    self.window.show_status(f"Connecté à : {data.get('username')}")
+                    self.window.enable_ready_button()  # Affiche le bouton "Prêt/Pas prêt"
+                    await self._negotiate_offer()
+                    return
+            except asyncio.TimeoutError:
+                continue
 
-        data = json.loads(msg)
-        if data.get('action') == 'remote_found':
-            self.window.show_status(f"Connecté à : {data.get('username')}")
-            await self._negotiate_offer()
+        self.window.show_status("Timeout : aucun client")
+        self.window.enable_retry_button()  # Affiche le bouton "Relancer"
 
     async def _negotiate_offer(self):
         self.channel = self.pc.createDataChannel('input')
