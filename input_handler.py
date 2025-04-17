@@ -77,11 +77,12 @@ class XboxControllerHandler:
             3: 'Y',
             4: 'LB',
             5: 'RB',
-            6: 'Back',
+            6: 'View',
             7: 'Start',
-            8: 'Xbox',
-            9: 'Left Stick',
-            10: 'Right Stick'
+            8: 'Left Stick',
+            9: 'Right Stick',
+            10: 'Xbox',
+            11: 'Share'
         }
         return button_map.get(button, f'Unknown({button})')
 
@@ -175,6 +176,8 @@ if __name__ == "__main__":
         joystick = None
         controller_type = "None"
 
+    manette = XboxControllerHandler(None) if controller_type == "Xbox" else PlayStationControllerHandler(None)
+
     # Fonction pour afficher le texte
     def display_text(text):
         screen.fill((0, 0, 0))  # Efface l'écran
@@ -193,9 +196,9 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 display_text(f"Key Pressed: {pygame.key.name(event.key)}")
             elif event.type == pygame.JOYBUTTONDOWN:
-                display_text(f"Joystick Button: {event.button}")
-            elif event.type == pygame.JOYAXISMOTION:
-                display_text(f"Axis {event.axis}: {event.value:.2f}")
+                display_text(f"Joystick Button: {manette._map_button(event.button)}")
+            # elif event.type == pygame.JOYAXISMOTION:
+            #     display_text(f"Axis {event.axis}: {event.value:.2f}")
             elif event.type == pygame.JOYHATMOTION:
                 display_text(f"Hat {event.hat}: {event.value}")
 

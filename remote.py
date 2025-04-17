@@ -33,16 +33,22 @@ class RemoteWindow(QMainWindow):
         self.status_label = QLabel("")
         layout.addWidget(self.status_label)
 
+        self.join_button = QPushButton("Rejoindre")
+        self.join_button.setEnabled(False)
+        self.join_button.clicked.connect(lambda: self.peer.join())
+        layout.addWidget(self.join_button)
+
         central.setLayout(layout)
         self.setCentralWidget(central)
 
     def _on_validate(self):
         self.peer = RemotePeer(self.username, self.code_edit.text(), self, self.loop)
 
-    def show_remote_info(self, host_name):
-        self.status_label.setText(f"Hôte: {host_name}")
+    def show_remote_info(self, username):
+        self.status_label.setText(f"Connecté à l'hôte : {username}")
 
     def enable_join(self):
-        join_btn = QPushButton("Rejoindre")
-        join_btn.clicked.connect(lambda: self.peer.join())
-        self.layout().addWidget(join_btn)
+        self.join_button.setEnabled(True)
+
+    def show_status(self, text):
+        self.status_label.setText(text)

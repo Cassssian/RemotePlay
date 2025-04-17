@@ -39,7 +39,7 @@ class HostPeer(BasePeer):
         self.window.show_status("En attente d'une connexion...")
 
         try:
-            msg = await asyncio.wait_for(self.ws.recv(), timeout=60)
+            msg = await asyncio.wait_for(self.ws.recv(), timeout=150)  # Augmentez le délai d'attente
         except asyncio.TimeoutError:
             self.window.show_status("Timeout : aucun client")
             return
@@ -79,6 +79,7 @@ class RemotePeer(BasePeer):
         self.window.show_status("Recherche de l'hôte...")
 
         async for msg in self.ws:
+            print(f"Message reçu : {msg}")  # Journal pour déboguer
             data = json.loads(msg)
             if data.get('action') == 'found':
                 self.window.show_remote_info(data.get('username'))
