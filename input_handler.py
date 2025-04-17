@@ -4,6 +4,7 @@
 from pynput import mouse, keyboard
 import json
 import pygame
+import sys
 
 class InputHandler:
     def __init__(self, data_channel):
@@ -157,3 +158,46 @@ class PlayStationControllerHandler:
         }
         msg = json.dumps(gyroscope_data)
         self.dc.send(msg)
+
+if __name__ == "__main__":
+    # Initialisation de pygame
+    pygame.init()
+    screen = pygame.display.set_mode((400, 300))
+    pygame.display.set_caption("Test Input Handler")
+    font = pygame.font.Font(None, 36)
+
+    # Initialisation des manettes
+    if pygame.joystick.get_count() > 0:
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
+        controller_type = "Xbox" if "Xbox" in joystick.get_name() else "PlayStation"
+    else:
+        joystick = None
+        controller_type = "None"
+
+    # Fonction pour afficher le texte
+    def display_text(text):
+        screen.fill((0, 0, 0))  # Efface l'écran
+        rendered_text = font.render(text, True, (255, 255, 255))
+        screen.blit(rendered_text, (20, 130))
+        pygame.display.flip()
+
+    display_text("Press any key or button...")
+
+    # Boucle principale
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                display_text(f"Key Pressed: {pygame.key.name(event.key)}")
+            elif event.type == pygame.JOYBUTTONDOWN:
+                display_text(f"Joystick Button: {event.button}")
+            elif event.type == pygame.JOYAXISMOTION:
+                display_text(f"Axis {event.axis}: {event.value:.2f}")
+            elif event.type == pygame.JOYHATMOTION:
+                display_text(f"Hat {event.hat}: {event.value}")
+
+    pygame.quit()
+    sys.exit()
