@@ -8,7 +8,8 @@ from network import RemotePeer
 class RemoteWindow(QMainWindow):
     def __init__(self, username, loop):
         super().__init__()
-        self.loop, self.username = loop, username
+        self.loop = loop
+        self.username = username
         self.setWindowTitle("Accéder - RemotePlay")
         self._build_ui()
         self.peer = None
@@ -42,6 +43,6 @@ class RemoteWindow(QMainWindow):
         self.status_label.setText(f"Hôte: {host_name}")
 
     def enable_join(self):
-        btn = QPushButton("Rejoindre")
-        btn.clicked.connect(lambda: self.peer.join())
-        self.layout().addWidget(btn)
+        join_btn = QPushButton("Rejoindre")
+        join_btn.clicked.connect(lambda: self.peer.join())
+        self.layout().addWidget(join_btn)

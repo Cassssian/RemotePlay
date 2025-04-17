@@ -1,7 +1,9 @@
 # network.py
 # Peer classes for host and remote: manage signaling and WebRTC
 
-import asyncio, json, websockets
+import asyncio
+import json
+import websockets
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from utils import generate_access_code
 
@@ -9,7 +11,9 @@ SIGNALING_URL = 'ws://127.0.0.1:8765'
 
 class BasePeer:
     def __init__(self, username, window, loop):
-        self.username, self.window, self.loop = username, window, loop
+        self.username = username
+        self.window = window
+        self.loop = loop
         self.pc = RTCPeerConnection()
         self.channel = None
 
@@ -27,17 +31,19 @@ class HostPeer(BasePeer):
         asyncio.create_task(self._setup())
 
     async def _setup(self):
-        if not await self._connect_signaling(): return
-        info = {'username': self.username}
-        code = generate_access_code(info)
+        if not await self._connect_signaling():
+            return
+        code = generate_access_code({'username': self.username})
         await self.ws.send(json.dumps({'action': 'register', 'code': code, 'username': self.username}))
         self.window.show_code(code)
         self.window.show_status("En attente d'une connexion...")
+
         try:
             msg = await asyncio.wait_for(self.ws.recv(), timeout=60)
         except asyncio.TimeoutError:
             self.window.show_status("Timeout : aucun client")
             return
+
         data = json.loads(msg)
         if data.get('action') == 'remote_found':
             self.window.show_status(f"Connecté à : {data.get('username')}")
@@ -48,6 +54,7 @@ class HostPeer(BasePeer):
         offer = await self.pc.createOffer()
         await self.pc.setLocalDescription(offer)
         await self.ws.send(json.dumps({'action': 'offer', 'sdp': self.pc.localDescription.sdp, 'type': self.pc.localDescription.type}))
+
         async for msg in self.ws:
             data = json.loads(msg)
             if data.get('action') == 'answer':
@@ -66,9 +73,11 @@ class RemotePeer(BasePeer):
         asyncio.create_task(self._setup())
 
     async def _setup(self):
-        if not await self._connect_signaling(): return
+        if not await self._connect_signaling():
+            return
         await self.ws.send(json.dumps({'action': 'lookup', 'code': self.code, 'username': self.username}))
         self.window.show_status("Recherche de l'hôte...")
+
         async for msg in self.ws:
             data = json.loads(msg)
             if data.get('action') == 'found':
@@ -85,4 +94,5 @@ class RemotePeer(BasePeer):
         await self.pc.setLocalDescription(answer)
         await self.ws.send(json.dumps({'action': 'answer', 'sdp': self.pc.localDescription.sdp, 'type': self.pc.localDescription.type}))
 
-    def join(self): pass
+    def join(self):
+        pass

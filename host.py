@@ -8,7 +8,8 @@ from network import HostPeer
 class HostWindow(QMainWindow):
     def __init__(self, username, loop):
         super().__init__()
-        self.loop, self.username = loop, username
+        self.loop = loop
+        self.username = username
         self.setWindowTitle("Héberger - RemotePlay")
         self._build_ui()
         self.peer = HostPeer(username, self, loop)
@@ -32,6 +33,11 @@ class HostWindow(QMainWindow):
         central.setLayout(layout)
         self.setCentralWidget(central)
 
-    def show_code(self, code): self.code_label.setText(code)
-    def show_status(self, text): self.status_label.setText(text)
-    def show_error(self, text): QMessageBox.critical(self, "Erreur", text)
+    def show_code(self, code):
+        self.code_label.setText(code)
+
+    def show_status(self, text):
+        self.status_label.setText(text)
+
+    def show_error(self, text):
+        QMessageBox.critical(self, "Erreur", text)

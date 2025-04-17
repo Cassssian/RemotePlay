@@ -3,6 +3,7 @@
 
 from pynput import mouse, keyboard
 import json
+import pygame
 
 class InputHandler:
     def __init__(self, data_channel):
@@ -26,4 +27,133 @@ class InputHandler:
 
     def _on_release(self, key):
         msg = json.dumps({'type': 'key_release', 'key': str(key)})
+        self.dc.send(msg)
+
+class XboxControllerHandler:
+    def __init__(self, data_channel):
+        self.dc = data_channel
+        pygame.init()
+        self.joystick = pygame.joystick.Joystick(0)
+        self.joystick.init()
+
+    def capture_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.JOYAXISMOTION:
+                msg = json.dumps({
+                    'type': 'joystick_axis',
+                    'axis': event.axis,
+                    'value': event.value
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYBUTTONDOWN:
+                msg = json.dumps({
+                    'type': 'joystick_button',
+                    'button': self._map_button(event.button),
+                    'pressed': True
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYBUTTONUP:
+                msg = json.dumps({
+                    'type': 'joystick_button',
+                    'button': self._map_button(event.button),
+                    'pressed': False
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYHATMOTION:
+                msg = json.dumps({
+                    'type': 'joystick_hat',
+                    'hat': event.hat,
+                    'value': event.value
+                })
+                self.dc.send(msg)
+
+    def _map_button(self, button):
+        # Mapping des boutons Xbox
+        button_map = {
+            0: 'A',
+            1: 'B',
+            2: 'X',
+            3: 'Y',
+            4: 'LB',
+            5: 'RB',
+            6: 'Back',
+            7: 'Start',
+            8: 'Xbox',
+            9: 'Left Stick',
+            10: 'Right Stick'
+        }
+        return button_map.get(button, f'Unknown({button})')
+
+    def has_gyroscope(self):
+        # Xbox controllers typically do not have gyroscopes
+        return False
+
+class PlayStationControllerHandler:
+    def __init__(self, data_channel):
+        self.dc = data_channel
+        pygame.init()
+        self.joystick = pygame.joystick.Joystick(0)
+        self.joystick.init()
+
+    def capture_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.JOYAXISMOTION:
+                msg = json.dumps({
+                    'type': 'joystick_axis',
+                    'axis': event.axis,
+                    'value': event.value
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYBUTTONDOWN:
+                msg = json.dumps({
+                    'type': 'joystick_button',
+                    'button': self._map_button(event.button),
+                    'pressed': True
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYBUTTONUP:
+                msg = json.dumps({
+                    'type': 'joystick_button',
+                    'button': self._map_button(event.button),
+                    'pressed': False
+                })
+                self.dc.send(msg)
+            elif event.type == pygame.JOYHATMOTION:
+                msg = json.dumps({
+                    'type': 'joystick_hat',
+                    'hat': event.hat,
+                    'value': event.value
+                })
+                self.dc.send(msg)
+
+    def _map_button(self, button):
+        # Mapping des boutons PlayStation
+        button_map = {
+            0: 'Cross',
+            1: 'Circle',
+            2: 'Square',
+            3: 'Triangle',
+            4: 'L1',
+            5: 'R1',
+            6: 'Share',
+            7: 'Options',
+            8: 'PS',
+            9: 'Left Stick',
+            10: 'Right Stick'
+        }
+        return button_map.get(button, f'Unknown({button})')
+
+    def has_gyroscope(self):
+        # PlayStation controllers (e.g., DualShock 4, DualSense) have gyroscopes
+        return True
+
+    def capture_gyroscope(self):
+        # Simulate gyroscope data (requires additional libraries for real data)
+        gyroscope_data = {
+            'type': 'gyroscope',
+            'x': 0.0,  # Replace with actual gyroscope data
+            'y': 0.0,
+            'z': 0.0
+        }
+        msg = json.dumps(gyroscope_data)
         self.dc.send(msg)
