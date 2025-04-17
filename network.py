@@ -8,7 +8,7 @@ from aiortc import RTCPeerConnection, RTCSessionDescription
 from utils import generate_access_code
 from streaming import ScreenTrack, AudioTrack  # Import des flux vidéo et audio
 
-SIGNALING_URL = 'ws://127.0.0.1:8765'
+SIGNALING_URL = 'https://signaling-server-y7w0.onrender.com'
 
 class BasePeer:
     def __init__(self, username, window, loop):
