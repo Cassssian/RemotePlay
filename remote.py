@@ -13,11 +13,8 @@ class RemoteWindow(QMainWindow):
         self.username = username
         self.setWindowTitle("Accéder - RemotePlay")
         self.color_scheme = generate_color_scheme()  # Génère un schéma de couleurs
-        self._build_ui()
         self.peer = None
-        self.retry_button = QPushButton("Relancer", self)
-        self.retry_button.setEnabled(False)
-        self.retry_button.clicked.connect(self.retry_search)
+        self._build_ui()  # Construire l'interface utilisateur
 
     def _build_ui(self):
         central = QWidget()
@@ -46,6 +43,7 @@ class RemoteWindow(QMainWindow):
             }}
         """)
 
+        # Ligne pour coller le code
         paste_row = QHBoxLayout()
         self.code_edit = QLineEdit()
         paste_btn = QPushButton("📋 Coller")
@@ -54,19 +52,26 @@ class RemoteWindow(QMainWindow):
         paste_row.addWidget(paste_btn)
         layout.addLayout(paste_row)
 
+        # Bouton de validation
         validate_btn = QPushButton("Valider")
         validate_btn.clicked.connect(self._on_validate)
         layout.addWidget(validate_btn)
 
+        # Label de statut
         self.status_label = QLabel("")
         layout.addWidget(self.status_label)
 
+        # Bouton pour rejoindre
         self.join_button = QPushButton("Rejoindre")
         self.join_button.setEnabled(False)
         self.join_button.clicked.connect(lambda: self.peer.join())
         layout.addWidget(self.join_button)
 
-        layout.addWidget(self.retry_button)
+        # Bouton pour relancer
+        self.retry_button = QPushButton("Relancer")  # Définir ici
+        self.retry_button.setEnabled(False)
+        self.retry_button.clicked.connect(self.retry_search)
+        layout.addWidget(self.retry_button)  # Ajouter à la mise en page
 
         central.setLayout(layout)
         self.setCentralWidget(central)
