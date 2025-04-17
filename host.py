@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor, QPalette
 from network import HostPeer
 from utils import generate_color_scheme
+from streaming import ScreenTrack  # Importez la classe pour capturer l'écran
 
 class HostWindow(QMainWindow):
     def __init__(self, username, loop):
@@ -66,6 +67,11 @@ class HostWindow(QMainWindow):
         self.retry_btn.clicked.connect(self._on_retry)
         layout.addWidget(self.retry_btn)
 
+        # Bouton pour démarrer/arrêter le partage
+        self.share_btn = QPushButton("Partager l'écran et le son")
+        self.share_btn.clicked.connect(self._toggle_share)
+        layout.addWidget(self.share_btn)
+
         central.setLayout(layout)
         self.setCentralWidget(central)
 
@@ -88,3 +94,17 @@ class HostWindow(QMainWindow):
         self.retry_btn.setVisible(False)
         self.status_label.setText("Relance de la recherche...")
         self.peer = HostPeer(self.username, self, self.loop)  # Relance la recherche
+
+    def _toggle_share(self):
+        if self.peer:
+            if hasattr(self, "screen_track") and self.screen_track:  # Si le partage est déjà actif
+                self.peer.pc.removeTrack(self.screen_track)  # Arrête le partage
+                self.screen_track = None
+                self.share_btn.setText("Partager l'écran et le son")
+                self.show_status("Partage arrêté.")
+            else:
+                # Démarrer le partage de l'écran
+                self.screen_track = ScreenTrack()
+                self.peer.pc.addTrack(self.screen_track)
+                self.share_btn.setText("Arrêter le partage")
+                self.show_status("Partage d'écran démarré.")

@@ -4,6 +4,6 @@ qasync
 websockets
 aiortc
 mss
-pyaudio
+sounddevice
 pygame
 pycryptodome

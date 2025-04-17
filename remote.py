@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButt
 from PyQt5.QtCore import Qt
 from network import RemotePeer
 from utils import generate_color_scheme
+from aiortc.contrib.media import MediaPlayer
+import cv2
 
 class RemoteWindow(QMainWindow):
     def __init__(self, username, loop):
@@ -95,3 +97,19 @@ class RemoteWindow(QMainWindow):
         self.retry_button.setEnabled(False)
         self.status_label.setText("Relance de la recherche...")
         self.parent().start_search()  # Exemple, ajustez selon votre logique
+
+    def display_video(self, track):
+        """
+        Affiche le flux vidéo reçu.
+        """
+        # Exemple : Utilisation d'OpenCV pour afficher la vidéo
+        @track.on("frame")
+        def on_frame(frame):
+            img = frame.to_ndarray(format="bgr24")
+            cv2.imshow("Remote Screen", img)
+            cv2.waitKey(1)
+
+    def play_audio(self, track):
+        # Logique pour jouer l'audio (par exemple, avec PyAudio)
+        player = MediaPlayer(track)
+        player.start()

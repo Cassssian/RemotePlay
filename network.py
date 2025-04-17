@@ -6,6 +6,7 @@ import json
 import websockets
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from utils import generate_access_code
+from streaming import ScreenTrack, AudioTrack  # Import des flux vidéo et audio
 
 SIGNALING_URL = 'ws://127.0.0.1:8765'
 
@@ -14,7 +15,12 @@ class BasePeer:
         self.username = username
         self.window = window
         self.loop = loop
-        self.pc = RTCPeerConnection()
+        self.pc = RTCPeerConnection(configuration={
+            "iceServers": [
+                {"urls": "stun:stun.l.google.com:19302"},  # Serveur STUN public
+                {"urls": "turn:turn.bistri.com:80", "username" : "homeo", "credential" : "homeo"}  # Autre serveur STUN public
+            ]
+        })
         self.channel = None
 
     async def _connect_signaling(self):
@@ -37,22 +43,26 @@ class HostPeer(BasePeer):
         await self.ws.send(json.dumps({'action': 'register', 'code': code, 'username': self.username}))
         self.window.show_code(code)
 
+        # Ajout du flux vidéo
+        self.screen_track = ScreenTrack()
+        self.pc.addTrack(self.screen_track)
+
         timeout = 150  # Temps total en secondes
         for remaining in range(timeout, 0, -1):
             self.window.show_status(f"En attente d'une connexion... ({remaining}s restantes)")
             try:
-                msg = await asyncio.wait_for(self.ws.recv(), timeout=1)  # Attente par incréments de 1 seconde
+                msg = await asyncio.wait_for(self.ws.recv(), timeout=1)
                 data = json.loads(msg)
                 if data.get('action') == 'remote_found':
                     self.window.show_status(f"Connecté à : {data.get('username')}")
-                    self.window.enable_ready_button()  # Affiche le bouton "Prêt/Pas prêt"
+                    self.window.enable_ready_button()
                     await self._negotiate_offer()
                     return
             except asyncio.TimeoutError:
                 continue
 
-        self.window.show_status("Timeout : aucun client")
-        self.window.enable_retry_button()  # Affiche le bouton "Relancer"
+        self.window.show_status("Timeout : aucun client")
+        self.window.enable_retry_button()
 
     async def _negotiate_offer(self):
         self.channel = self.pc.createDataChannel('input')
@@ -84,7 +94,7 @@ class RemotePeer(BasePeer):
         self.window.show_status("Recherche de l'hôte...")
 
         async for msg in self.ws:
-            print(f"Message reçu : {msg}")  # Journal pour déboguer
+            print("mess recu" , msg)
             data = json.loads(msg)
             if data.get('action') == 'found':
                 self.window.show_remote_info(data.get('username'))
@@ -100,5 +110,15 @@ class RemotePeer(BasePeer):
         await self.pc.setLocalDescription(answer)
         await self.ws.send(json.dumps({'action': 'answer', 'sdp': self.pc.localDescription.sdp, 'type': self.pc.localDescription.type}))
 
-    def join(self):
-        pass
+        # Ajout des flux vidéo et audio
+        @self.pc.on("track")
+        async def on_track(track):
+            if track.kind == "video":
+                self.window.display_video(track)
+            elif track.kind == "audio":
+                self.window.play_audio(track)
+
+        @self.pc.on("iceconnectionstatechange")
+        def on_ice_connection_state_change():
+            if self.pc.iceConnectionState == "failed":
+                self.window.show_error("Échec de la connexion ICE.")
