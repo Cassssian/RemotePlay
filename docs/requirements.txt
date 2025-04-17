@@ -5,4 +5,5 @@ websockets
 aiortc
 mss
 pyaudio
+pygame
 pycryptodome
