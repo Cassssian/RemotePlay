@@ -1,18 +1,24 @@
 # signaling_server.py
 # WebSocket-based signaling for STUN/TURN negotiation and code exchange
 
-import asyncio, json, websockets, os
+import asyncio
+import json
+import websockets
+import os
+from http import HTTPStatus
 
 PORT = 8765
-clients = set()
+# Use a dict to map registration codes to websocket connections
+clients: dict[str, websockets.WebSocketServerProtocol] = {}
+
+async def process_request(path, request_headers):
+    # Only allow GET method for WebSocket handshake
+    method = request_headers.get(':method', 'GET')
+    if method != 'GET':
+        # Reject any non-GET HTTP methods (e.g., HEAD)
+        return HTTPStatus.METHOD_NOT_ALLOWED, [], b'Method Not Allowed\n'
 
 async def handler(websocket, path):
-    # Vérifier que la méthode HTTP est GET
-    if websocket.request_headers.get("Upgrade", "").lower() != "websocket":
-        print('lakaka')
-        return
-
-    clients.add(websocket)
     try:
         async for msg in websocket:
             data = json.loads(msg)
@@ -34,15 +40,23 @@ async def handler(websocket, path):
                 target = clients.get(code)
                 if target and target.open:
                     await target.send(msg)
-    except:
+    except websockets.exceptions.ConnectionClosed:
         pass
     finally:
-        clients.remove(websocket)
+        # Clean up any registrations for this websocket
+        to_remove = [key for key, ws in clients.items() if ws == websocket]
+        for key in to_remove:
+            del clients[key]
 
 async def start():
-    port = int(os.getenv("PORT", 8765))  # Render définit automatiquement la variable PORT
-    server = await websockets.serve(handler, "0.0.0.0", port)
-    print(f"Serveur de signalisation démarré sur le port {port}")
+    port = int(os.getenv("PORT", PORT))  # Render sets PORT automatically
+    server = await websockets.serve(
+        handler,
+        "0.0.0.0",
+        port,
+        process_request=process_request
+    )
+    print(f"Signaling server started on port {port}")
     await server.wait_closed()
 
 if __name__ == "__main__":
