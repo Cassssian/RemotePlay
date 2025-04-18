@@ -1,8 +1,9 @@
 # streaming.py
 # Video/audio capturing and sending via WebRTC
 
-from aiortc import VideoStreamTrack, AudioStreamTrack, VideoFrame
+from aiortc import VideoStreamTrack, AudioStreamTrack
 from aiortc.mediastreams import AudioFrame
+from av import VideoFrame
 import numpy as np
 import cv2
 import mss
@@ -33,7 +34,7 @@ class ScreenTrack(VideoStreamTrack):
         # Convertir l'image en format BGR pour OpenCV
         img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-        # Créer une frame vidéo
+        # Créer une frame vidéo avec PyAV
         frame = VideoFrame.from_ndarray(img, format="bgr24")
         frame.pts, frame.time_base = await self.next_timestamp()
         return frame

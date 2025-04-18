@@ -3,6 +3,9 @@ PyQt5
 qasync
 websockets
 aiortc
+av
+numpy
+opencv-python
 mss
 sounddevice
 pygame
