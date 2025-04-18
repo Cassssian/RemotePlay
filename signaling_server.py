@@ -12,11 +12,19 @@ PORT = 8765
 clients: dict[str, websockets.WebSocketServerProtocol] = {}
 
 async def process_request(path, request_headers):
-    # Only allow GET method for WebSocket handshake
-    method = request_headers.get(':method', 'GET')
-    if method != 'GET':
-        # Reject any non-GET HTTP methods (e.g., HEAD)
-        return HTTPStatus.METHOD_NOT_ALLOWED, [], b'Method Not Allowed\n'
+    """
+    Vérifie que la méthode HTTP est GET pour les connexions WebSocket.
+    Répond avec HTTP 200 pour les requêtes HEAD (health checks).
+    Rejette toutes les autres méthodes (POST, PUT, etc.).
+    """
+    method = request_headers.get(":method", "GET")  # Vérifie la méthode HTTP
+    if method == "HEAD":
+        # Répondre avec HTTP 200 pour les requêtes HEAD (health checks)
+        return HTTPStatus.OK, [("Content-Type", "text/plain")], b""
+    elif method != "GET":
+        # Rejeter toutes les autres méthodes non conformes
+        print(f"Requête rejetée : méthode {method} non autorisée.")
+        return HTTPStatus.METHOD_NOT_ALLOWED, [("Content-Type", "text/plain")], b"Method Not Allowed\n"
 
 async def handler(websocket, path):
     try:
