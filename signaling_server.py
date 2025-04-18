@@ -6,27 +6,30 @@ import json
 import websockets
 import os
 from http import HTTPStatus
+from websockets.server import Request  # ou websockets.asyncio.server.Request
 
 PORT = 8765
 # Use a dict to map registration codes to websocket connections
 clients: dict[str, websockets.WebSocketServerProtocol] = {}
 
-async def process_request(path, request_headers):
+async def process_request(connection, request : Request):
     """
     Vérifie que la méthode HTTP est GET pour les connexions WebSocket.
     Répond avec HTTP 200 pour les requêtes HEAD (health checks).
     Rejette toutes les autres méthodes (POST, PUT, etc.).
     """
-    method = request_headers.get(":method", "GET")  # Vérifie la méthode HTTP
-    if method == "HEAD":
-        # Répondre avec HTTP 200 pour les requêtes HEAD (health checks)
-        return HTTPStatus.OK, [("Content-Type", "text/plain")], b""
-    elif method != "GET":
-        # Rejeter toutes les autres méthodes non conformes
-        print(f"Requête rejetée : méthode {method} non autorisée.")
-        return HTTPStatus.METHOD_NOT_ALLOWED, [("Content-Type", "text/plain")], b"Method Not Allowed\n"
+    if request.headers.get("Upgrade", "").lower() != "websocket":
+        return (
+            HTTPStatus.OK,
+            [("Content-Type", "text/plain")],
+            b"OK\n",
+        )
 
-async def handler(websocket, path):
+    # Sinon, None → on continue normalement le handshake WebSocket
+    return None
+
+
+async def handler(websocket):
     print(websocket)
     try:
         async for msg in websocket:
