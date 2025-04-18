@@ -7,6 +7,7 @@ import websockets
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceServer, RTCConfiguration
 from utils import generate_access_code
 from streaming import ScreenTrack, AudioTrack  # Import des flux vidéo et audio
+from input_handler import InputHandler
 
 SIGNALING_URL = 'wss://signaling-server-y7w0.onrender.com'
 
@@ -51,6 +52,32 @@ class HostPeer(BasePeer):
         # Ajout du flux vidéo
         self.screen_track = ScreenTrack()
         self.pc.addTrack(self.screen_track)
+
+        @self.pc.on("datachannel")
+        def on_datachannel(channel):
+            self.channel = channel
+
+            @channel.on("message")
+            def on_message(message):
+                try:
+                    data = json.loads(message)
+                    event_type = data.get('type')
+                    if event_type == 'key_press':
+                        print(f"Touche pressée : {data.get('key')}")
+                    elif event_type == 'key_release':
+                        print(f"Touche relâchée : {data.get('key')}")
+                    elif event_type == 'mouse_move':
+                        print(f"Souris déplacée : x={data.get('x')}, y={data.get('y')}")
+                    elif event_type == 'mouse_click':
+                        print(f"Clic souris : x={data.get('x')}, y={data.get('y')}, bouton={data.get('button')}, appuyé={data.get('pressed')}")
+                    elif event_type == 'joystick_axis':
+                        print(f"Joystick : axe={data.get('axis')}, valeur={data.get('value')}")
+                    elif event_type == 'joystick_button':
+                        print(f"Bouton joystick : bouton={data.get('button')}, appuyé={data.get('pressed')}")
+                    elif event_type == 'joystick_hat':
+                        print(f"Joystick hat : hat={data.get('hat')}, valeur={data.get('value')}")
+                except Exception as e:
+                    print(f"Erreur lors de la réception du message : {e}")
 
         timeout = 150  # Temps total en secondes
         for remaining in range(timeout, 0, -1):
@@ -99,7 +126,7 @@ class RemotePeer(BasePeer):
         self.window.show_status("Recherche de l'hôte...")
 
         async for msg in self.ws:
-            print("mess recu" , msg)
+            print("Message reçu :", msg)
             data = json.loads(msg)
             if data.get('action') == 'found':
                 self.window.show_remote_info(data.get('username'))
@@ -122,6 +149,12 @@ class RemotePeer(BasePeer):
                 self.window.display_video(track)
             elif track.kind == "audio":
                 self.window.play_audio(track)
+
+        @self.pc.on("datachannel")
+        def on_datachannel(channel):
+            self.channel = channel
+            input_handler = InputHandler(channel)  # Crée une instance d'InputHandler
+            input_handler.start_capture()  # Démarre la capture des événements clavier et souris
 
         @self.pc.on("iceconnectionstatechange")
         def on_ice_connection_state_change():
