@@ -4,7 +4,7 @@
 import asyncio
 import json
 import websockets
-from aiortc import RTCPeerConnection, RTCSessionDescription
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceServer, RTCConfiguration
 from utils import generate_access_code
 from streaming import ScreenTrack, AudioTrack  # Import des flux vidéo et audio
 
@@ -15,12 +15,13 @@ class BasePeer:
         self.username = username
         self.window = window
         self.loop = loop
-        self.pc = RTCPeerConnection({
-            "iceServers": [  # Corrigé : Utilisation d'un dictionnaire directement
-                {"urls": "stun:stun.l.google.com:19302"},  # Serveur STUN public
-                {"urls": "turn:turn.bistri.com:80", "username": "homeo", "credential": "homeo"}  # Serveur TURN
-            ]
-        })
+
+        # Utilisation de RTCConfiguration avec RTCIceServer
+        ice_servers = [
+            RTCIceServer(urls="stun:stun.l.google.com:19302"),  # Serveur STUN public
+            RTCIceServer(urls = "turn:turn.bistri.com:80", username = "homeo", credential = "homeo")  # Exemple de serveur TURN
+        ]
+        self.pc = RTCPeerConnection(RTCConfiguration(ice_servers))
         self.channel = None
 
     async def _connect_signaling(self):
@@ -30,6 +31,10 @@ class BasePeer:
         except Exception as e:
             self.window.show_error(f"Impossible de joindre le signaling server : {e}")
             return False
+
+    async def _setup(self):
+        # Exemple d'ajout de piste
+        self.pc.addTrack(self.screen_track)
 
 class HostPeer(BasePeer):
     def __init__(self, username, window, loop):
