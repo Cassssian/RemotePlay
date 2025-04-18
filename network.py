@@ -76,6 +76,18 @@ class HostPeer(BasePeer):
                         print(f"Bouton joystick : bouton={data.get('button')}, appuyé={data.get('pressed')}")
                     elif event_type == 'joystick_hat':
                         print(f"Joystick hat : hat={data.get('hat')}, valeur={data.get('value')}")
+                    elif event_type == 'joystick_axis':
+                        print(f"Joystick : axe={data.get('axis')}, valeur={data.get('value')}")
+                    elif event_type == 'joystick_button':
+                        print(f"Bouton joystick : bouton={data.get('button')}, appuyé={data.get('pressed')}")
+                    elif event_type == 'joystick_hat':
+                        print(f"Joystick hat : hat={data.get('hat')}, valeur={data.get('value')}")
+                    elif event_type == 'joystick_axis':
+                        print(f"Joystick : axe={data.get('axis')}, valeur={data.get('value')}")
+                    elif event_type == 'joystick_button':
+                        print(f"Bouton joystick : bouton={data.get('button')}, appuyé={data.get('pressed')}")
+                    elif event_type == 'joystick_hat':
+                        print(f"Joystick hat : hat={data.get('hat')}, valeur={data.get('value')}")
                 except Exception as e:
                     print(f"Erreur lors de la réception du message : {e}")
 

@@ -30,7 +30,6 @@ async def process_request(connection, request : Request):
 
 
 async def handler(websocket):
-    print(websocket)
     try:
         async for msg in websocket:
             data = json.loads(msg)
@@ -38,25 +37,25 @@ async def handler(websocket):
             code = data.get('code')
 
             if action == 'register':
-                clients[code] = websocket
+                clients[code] = {'websocket': websocket, 'username': data.get('username')}
                 print(f"Host registered with code {code}")
             elif action == 'lookup':
                 peer = clients.get(code)
                 if peer:
                     # Notify remote
-                    await websocket.send(json.dumps({'action': 'found', 'username': data.get('username')}))
+                    await websocket.send(json.dumps({'action': 'found', 'username': peer['username']}))
                     # Notify host
-                    await peer.send(json.dumps({'action': 'remote_found', 'username': data.get('username')}))
+                    await peer['websocket'].send(json.dumps({'action': 'remote_found', 'username': data.get('username')}))
             else:
                 # Relay all other messages (SDP/ICE, inputs)
                 target = clients.get(code)
-                if target and target.open:
-                    await target.send(msg)
+                if target and target['websocket'].open:
+                    await target['websocket'].send(msg)
     except websockets.exceptions.ConnectionClosed:
         pass
     finally:
         # Clean up any registrations for this websocket
-        to_remove = [key for key, ws in clients.items() if ws == websocket]
+        to_remove = [key for key, ws in clients.items() if ws['websocket'] == websocket]
         for key in to_remove:
             del clients[key]
 
