@@ -17,7 +17,6 @@ async def process_request(path, request_headers):
     Répond avec HTTP 200 pour les requêtes HEAD (health checks).
     Rejette toutes les autres méthodes (POST, PUT, etc.).
     """
-    print(method)
     method = request_headers.get(":method", "GET")  # Vérifie la méthode HTTP
     if method == "HEAD":
         # Répondre avec HTTP 200 pour les requêtes HEAD (health checks)
@@ -28,6 +27,7 @@ async def process_request(path, request_headers):
         return HTTPStatus.METHOD_NOT_ALLOWED, [("Content-Type", "text/plain")], b"Method Not Allowed\n"
 
 async def handler(websocket, path):
+    print(websocket)
     try:
         async for msg in websocket:
             data = json.loads(msg)
