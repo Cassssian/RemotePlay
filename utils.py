@@ -29,7 +29,7 @@ def generate_color_scheme():
     complementary_color = (base_color + 128) % 256  # Couleur complémentaire
     return {
         "background": f"rgb({24}, {12}, {36})",
-        "primary": f"rgb({complementary_color}, {complementary_color}, 255)",
+        "primary": f"rgb({complementary_color}, {complementary_color}, {base_color})",
         "secondary": f"rgb(255, {complementary_color}, {complementary_color})",
-        "text": "white" if base_color < 128 else "black"
+        "text": "white" if complementary_color < 128 else "black"
     }
