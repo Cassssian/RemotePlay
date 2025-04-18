@@ -5,25 +5,21 @@ import asyncio
 import json
 import websockets
 import os
-from http import HTTPStatus
+import http
 from websockets.server import Request  # ou websockets.asyncio.server.Request
 
 PORT = 8765
 # Use a dict to map registration codes to websocket connections
 clients: dict[str, websockets.WebSocketServerProtocol] = {}
 
-async def process_request(connection, request : Request):
+def health_check(connection, request):
     """
     Vérifie que la méthode HTTP est GET pour les connexions WebSocket.
     Répond avec HTTP 200 pour les requêtes HEAD (health checks).
     Rejette toutes les autres méthodes (POST, PUT, etc.).
     """
-    if request.headers.get("Upgrade", "").lower() != "websocket":
-        return (
-            HTTPStatus.OK,
-            [("Content-Type", "text/plain")],
-            b"OK\n",
-        )
+    if request.path == "/healthz":
+        return connection.respond(http.HTTPStatus.OK, "OK\n")
 
     # Sinon, None → on continue normalement le handshake WebSocket
     return None
@@ -65,7 +61,7 @@ async def start():
         handler,
         "0.0.0.0",
         port,
-        process_request=process_request
+        process_request=health_check
     )
     print(f"Signaling server started on port {port}")
     await server.wait_closed()
