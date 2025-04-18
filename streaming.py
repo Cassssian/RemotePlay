@@ -4,10 +4,9 @@
 from aiortc import VideoStreamTrack, AudioStreamTrack
 from av import VideoFrame
 from aiortc.mediastreams import AudioFrame
-from av import VideoFrame
 import numpy as np
-import cv2
 import mss
+import cv2
 import sounddevice as sd
 
 class ScreenTrack(VideoStreamTrack):
@@ -46,28 +45,14 @@ class AudioTrack(AudioStreamTrack):
     """
     def __init__(self):
         super().__init__()
-        self.sample_rate = 48000  # Taux d'échantillonnage
-        self.channels = 2  # Stéréo
-        self.block_size = 1024  # Taille des blocs audio
-        self.stream = sd.InputStream(
-            samplerate=self.sample_rate,
-            channels=self.channels,
-            blocksize=self.block_size,
-            dtype="int16"
-        )
+        self.sample_rate = 48000
+        self.channels = 2
+        self.stream = sd.InputStream(samplerate=self.sample_rate, channels=self.channels, dtype="int16")
         self.stream.start()
 
     async def recv(self):
-        """
-        Capture un bloc audio et le transmet sous forme de frame audio.
-        """
-        # Lire un bloc audio
-        audio_data, _ = self.stream.read(self.block_size)
-
-        # Convertir les données audio en tableau numpy
+        audio_data, _ = self.stream.read(1024)
         audio_array = np.frombuffer(audio_data, dtype=np.int16)
-
-        # Créer une frame audio
         frame = AudioFrame.from_ndarray(audio_array, format="s16", layout="stereo")
         frame.pts, frame.time_base = await self.next_timestamp()
         return frame

@@ -102,7 +102,6 @@ class RemoteWindow(QMainWindow):
         """
         Affiche le flux vidéo reçu.
         """
-        # Exemple : Utilisation d'OpenCV pour afficher la vidéo
         @track.on("frame")
         def on_frame(frame):
             img = frame.to_ndarray(format="bgr24")

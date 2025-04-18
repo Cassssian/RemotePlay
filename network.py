@@ -158,9 +158,9 @@ class RemotePeer(BasePeer):
         @self.pc.on("track")
         async def on_track(track):
             if track.kind == "video":
-                self.window.display_video(track)
+                self.window.display_video(track)  # Implémentez display_video pour afficher le flux
             elif track.kind == "audio":
-                self.window.play_audio(track)
+                self.window.play_audio(track)  # Implémentez play_audio pour jouer le son
 
         @self.pc.on("datachannel")
         def on_datachannel(channel):
