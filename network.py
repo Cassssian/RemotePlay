@@ -15,10 +15,10 @@ class BasePeer:
         self.username = username
         self.window = window
         self.loop = loop
-        self.pc = RTCPeerConnection(configuration={
-            "iceServers": [
+        self.pc = RTCPeerConnection({
+            "iceServers": [  # Corrigé : Utilisation d'un dictionnaire directement
                 {"urls": "stun:stun.l.google.com:19302"},  # Serveur STUN public
-                {"urls": "turn:turn.bistri.com:80", "username" : "homeo", "credential" : "homeo"}  # Autre serveur STUN public
+                {"urls": "turn:turn.bistri.com:80", "username": "homeo", "credential": "homeo"}  # Serveur TURN
             ]
         })
         self.channel = None

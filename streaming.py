@@ -2,6 +2,7 @@
 # Video/audio capturing and sending via WebRTC
 
 from aiortc import VideoStreamTrack, AudioStreamTrack
+from av import VideoFrame
 from aiortc.mediastreams import AudioFrame
 from av import VideoFrame
 import numpy as np
